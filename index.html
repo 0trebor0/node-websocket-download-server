@@ -1,0 +1,49 @@
+<head>
+	<title>Download Server</title>
+	<link rel="shortcut icon" href="img/profile.png">
+</head>
+<body>
+	<center>
+		<h1>Download Server</h1>
+		<p id='status'></p>
+		<form method='post' id="form21" onsubmit="return sendUrl(socket)">
+			<p><span id='msg'></span></p>
+			<p>Download Link:<input type='text' name='url' ></p>
+			<input type='submit'>
+		</form>
+		<p>Received:<span id="received"></span></p>
+		
+	</center>
+<script type="text/javascript">
+		if("WebSocket" in window){
+			var socket = new WebSocket("ws://127.0.0.1:3232");
+			socket.onopen = function(){
+				socket.send(btoa(JSON.stringify({client:{status:'hello'}})));
+			}
+			socket.onmessage = function(event){
+				var mess = atob(event.data);
+				var received = JSON.parse(mess);
+				document.getElementById("received").innerHTML = mess;
+				if(received['server']['status']=='hey'){
+					document.getElementById("status").innerHTML = "<span style='color:green;'>Server is Online</span>";
+				}else if(received['server'].hasOwnProperty('msg')){
+					document.getElementById("msg").innerHTML = received['server']['msg'];
+				}
+				
+			}
+			socket.onclose = function(){
+				document.getElementById("status").innerHTML = "<span style='color:red;'>Server is Online</span>";
+			}
+			window.onbeforeunload = function(event) {
+				socket.close();
+            };
+			function sendUrl(socket){
+				var valueToSend = document.forms['form21']['url'].value;
+				socket.send(btoa(JSON.stringify({client:{url:valueToSend}})));
+				return false;
+			}
+		}else{
+			document.getElementById("status").innerHTML = "Browser not Supported.";
+		}
+</script>
+</body>
